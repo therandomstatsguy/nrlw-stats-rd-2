@@ -442,10 +442,11 @@ function zWindow(team,period){
   return null;
 }
 const ZMIRROR={'Left Edge':'Right Edge','Right Edge':'Left Edge','Left Side':'Right Side','Right Side':'Left Side','Middle':'Middle'};
-function FieldStrip({tries,total,reversed,red,highlight,onZone,labelTop,radius}){
+function FieldStrip({tries,total,reversed,red,highlight,onZone,labelTop,radius,mirror}){
   const ce=React.createElement;
   const zs=reversed?ZONES.slice().reverse():ZONES;
-  const counts={};ZONES.forEach(z=>counts[z]=0);tries.forEach(t=>{if(counts[t.z]!==undefined)counts[t.z]++;});
+  // defence mirrors attack: a try at the attacker's Left Edge is conceded on the defender's Right Edge
+  const counts={};ZONES.forEach(z=>counts[z]=0);tries.forEach(t=>{const z=mirror?ZMIRROR[t.z]:t.z;if(counts[z]!==undefined)counts[z]++;});
   const mx=Math.max(...ZONES.map(z=>counts[z]),1);
   return ce('div',{style:{display:'flex',height:'58px',overflow:'hidden',border:'1px solid var(--brd)',borderRadius:radius}},
     zs.map((z,i)=>{const c=counts[z],f=c/mx,on=highlight===z;const base=red?'239,68,68':'0,212,160';
@@ -484,10 +485,12 @@ function ZonesSection({home,away}){
   const zpass=(t,set)=>zp==='2025'?t.yr===2025:zp==='2026'?t.yr===2026:(set&&set.has(zkey(t)));
   const atkTries=D.triesZ.filter(t=>t.a===atk&&zMatch(t,zm)&&zpass(t,awSet));
   const defTries=D.triesZ.filter(t=>t.d===def&&zMatch(t,zm)&&zpass(t,dwSet));
-  const atkZone=sel?(sel.from==='atk'?sel.z:ZMIRROR[sel.z]):null;
-  const defZone=sel?(sel.from==='def'?sel.z:ZMIRROR[sel.z]):null;
-  const atkZ=atkZone?atkTries.filter(t=>t.z===atkZone):atkTries;
-  const defZ=defZone?defTries.filter(t=>t.z===defZone):defTries;
+  // selAtk = the selected zone in attacker terms; the defence highlight is its mirror
+  const selAtk=sel?(sel.from==='atk'?sel.z:ZMIRROR[sel.z]):null;
+  const atkZone=selAtk;
+  const defZone=selAtk?ZMIRROR[selAtk]:null;
+  const atkZ=selAtk?atkTries.filter(t=>t.z===selAtk):atkTries;
+  const defZ=selAtk?defTries.filter(t=>t.z===selAtk):defTries;
   const clickDef=z=>setSel(sel&&sel.from==='def'&&sel.z===z?null:{z:z,from:'def'});
   const clickAtk=z=>setSel(sel&&sel.from==='atk'&&sel.z===z?null:{z:z,from:'atk'});
   const tg=(items,cur,setter)=>ce('div',{className:'tg pm-tg'},items.map(it=>ce('button',{key:it.k,className:'tb'+(it.k===cur?' on':''),onClick:()=>setter(it.k)},it.l)));
@@ -503,7 +506,7 @@ function ZonesSection({home,away}){
     ce('div',{className:'cr pm-filt',style:{marginBottom:'10px'}},ce('span',{className:'cl'},'Period'),tg(ZPERIODS,zp,setZp)),
     ce('div',{className:'fc'},
       ce('div',{style:{marginBottom:'5px'}},teamLbl(def,def+' Defence ('+defTries.length+' tries)','#ef4444')),
-      ce(FieldStrip,{tries:defTries,total:defTries.length,reversed:true,red:true,labelTop:true,highlight:defZone,onZone:clickDef,radius:'8px 8px 0 0'}),
+      ce(FieldStrip,{tries:defTries,total:defTries.length,reversed:true,red:true,labelTop:true,highlight:defZone,onZone:clickDef,radius:'8px 8px 0 0',mirror:true}),
       ce(FieldStrip,{tries:atkTries,total:atkTries.length,reversed:false,red:false,labelTop:false,highlight:atkZone,onZone:clickAtk,radius:'0 0 8px 8px'}),
       ce('div',{style:{marginTop:'5px'}},teamLbl(atk,atk+' Attack ('+atkTries.length+' tries)',D.meta[atk].c)),
       ce('div',{className:'cr',style:{marginTop:'12px',marginBottom:'2px'}},
