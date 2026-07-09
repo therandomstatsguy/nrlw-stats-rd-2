@@ -374,7 +374,7 @@ function PlayerModal({pl,nick,oppForPlayer,venue,round,odds,market0,atsN0,period
   }
   const L=D.ladder['2025']||{};
   const status=(L[nick]||99)<=(L[opp]||99)?'F':'U';
-  const oppTop=(L[opp]||99)<=6;
+  const oppTop=((D.titleRank&&D.titleRank[opp])||L[opp]||99)<=6;   // opponent's current (last-round) rank
   // dynamic scorecards
   const baseSet=applyPeriod(own,period);
   const gms=baseSet.length;
@@ -720,7 +720,7 @@ function TeamStatsSection({home,away,iso,venue,odds}){
     if(has('favund')){const st=(L[team]||99)<(L[other]||99)?'F':'U';g=g.filter(r=>r.fav===st);}
     if(has('daynight'))g=g.filter(r=>r.night===fxNight);
     if(has('wet'))g=g.filter(r=>r.wet===1);
-    if(has('rank')){const top=(L[other]||99)<=6;g=g.filter(r=>top?(r.otop===1):(r.orank>0&&r.otop===0));}
+    if(has('rank')){const top=((D.titleRank&&D.titleRank[other])||L[other]||99)<=6;g=g.filter(r=>top?(r.otop===1):(r.orank>0&&r.otop===0));}
     if(has('turn'))g=openerMode?g.filter(r=>r.opener===1):g.filter(r=>r.rest>0&&r.rest<=6);
     if(has('dow'))g=g.filter(r=>r.dow===fxDow);
     g=g.slice().sort((a,b)=>a.d<b.d?1:(a.d>b.d?-1:0));
@@ -766,7 +766,7 @@ function TeamStatsSection({home,away,iso,venue,odds}){
     if(has('venue'))sufs.push('at '+vShort(venue));
     if(has('favund'))sufs.push('as '+((L[team]||99)<(L[other]||99)?'favourite':'underdog'));
     if(has('wet'))sufs.push('in the wet');
-    if(has('rank'))sufs.push('vs '+((L[other]||99)<=6?'Top 6':'Bottom 6')+' teams');
+    if(has('rank'))sufs.push('vs '+(((D.titleRank&&D.titleRank[other])||L[other]||99)<=6?'Top 6':'Bottom 6')+' teams');
     if(has('turn')){if(openerMode)noun='Season Openers';else sufs.push('off a short turnaround');}
     let t=team+(P?' '+P:'')+' '+adjs.join(' ')+' '+noun;
     if(sufs.length)t+=' '+sufs.join(' ');
