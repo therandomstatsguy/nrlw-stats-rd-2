@@ -179,7 +179,7 @@ const D=window.__D__;
 function rn(s,r){const m=D.finalsRounds&&D.finalsRounds[s];return (m&&m[r])?m[r]:(r||'–');}
 const MARKETS=[{k:'ats',l:'ATS'},{k:'first',l:'1st'},{k:'f123',l:'1/2/3'},{k:'last',l:'Last'},{k:'h1',l:'1H'},{k:'h2',l:'2H'}];
 const CATS=[{k:'all',l:'All'},{k:'h2h',l:'H2H'},{k:'venue',l:'Venue'},{k:'posopp',l:'Pos v Opp'}];
-const PERIODS=[{k:'all',l:'All'},{k:'2026',l:'2026'},{k:'l20',l:'Last 20'},{k:'l10',l:'Last 10'},{k:'l5',l:'Last 5'}];
+const PERIODS=[{k:'all',l:'All'},{k:'2026',l:'2026'},{k:'2025',l:'2025'},{k:'l20',l:'Last 20'},{k:'l10',l:'Last 10'},{k:'l5',l:'Last 5'}];
 const MD={ats:'Anytime try scorer',first:'First try of the match',f123:'One of the first three tries',last:'Last try of the match',h1:'Scores a try in the 1st half',h2:'Scores a try in the 2nd half'};
 const POSLBL={FB:'Fullback',WING:'Wing',CTR:'Centre',HALF:'Half',HOOK:'Hooker',PROP:'Prop','2RW':'2nd Row',LOCK:'Lock',BENCH:'Bench'};
 const OPP_POS={'Fullback':'Fullback','Left Wing':'Right Wing','Right Wing':'Left Wing','Left Centre':'Right Centre','Right Centre':'Left Centre','Left Half':'Right 2nd Row','Right Half':'Left 2nd Row','Left 2nd Row':'Right Half','Right 2nd Row':'Left Half','Prop':'Prop','Hooker':'Hooker','Lock':'Lock'};
@@ -215,6 +215,7 @@ function posRankMap(P,market,period,mode){
   teams.forEach(t=>{
     let keep=null;
     if(period==='2026'){keep=new Set(D.G.filter(x=>x.tm===t&&x.s===2026).map(x=>x.d));}
+    else if(period==='2025'){keep=new Set(D.G.filter(x=>x.tm===t&&x.s===2025).map(x=>x.d));}
     else{const w={l20:20,l10:10,l5:5}[period];if(w){const ds=[...new Set(D.G.filter(x=>x.tm===t).map(x=>x.d))].sort().reverse();keep=new Set(ds.slice(0,w));}}
     const recs=D.G.filter(x=>(mode==='atk'?x.tm===t:x.o===t)&&x.p===P&&(keep?keep.has(x.d):true));
     score[t]=recs.reduce((a,b)=>a+mval(b,market),0);
@@ -232,6 +233,7 @@ function gameSet(name,pdet,cat,opp,venue){
 function applyPeriod(g,period){
   const s=[...g].sort((a,b)=> a.d<b.d?1:(a.d>b.d?-1:0));
   if(period==='2026') return s.filter(x=>x.s===2026);
+  if(period==='2025') return s.filter(x=>x.s===2025);
   if(period==='all') return s;
   const n={l20:20,l10:10,l5:5}[period]; return n?s.slice(0,n):s;  // actual last N games
 }
@@ -724,7 +726,7 @@ function TeamStatsSection({home,away,iso,venue,odds}){
     if(has('turn'))g=openerMode?g.filter(r=>r.opener===1):g.filter(r=>r.rest>0&&r.rest<=6);
     if(has('dow'))g=g.filter(r=>r.dow===fxDow);
     g=g.slice().sort((a,b)=>a.d<b.d?1:(a.d>b.d?-1:0));
-    if(period==='2026')g=g.filter(r=>r.s===2026);else{const n={l20:20,l10:10,l5:5}[period];if(n)g=g.slice(0,n);}
+    if(period==='2026')g=g.filter(r=>r.s===2026);else if(period==='2025')g=g.filter(r=>r.s===2025);else{const n={l20:20,l10:10,l5:5}[period];if(n)g=g.slice(0,n);}
     return g;
   }
   const hit=(g,pred)=>{const n=g.length,h=g.filter(pred).length;return {pct:n?Math.round(h/n*100):0,h:h,n:n};};
